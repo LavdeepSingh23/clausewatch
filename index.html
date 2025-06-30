@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClauseWatch - Modern, Minimalist TOS Scanner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #e50914; /* Vibrant Red */
+            --bg-color: #141414; /* Off-black for background */
+            --surface-color: #222222; /* For cards and interactive surfaces */
+            --text-color: #ffffff; /* Primary text color */
+            --text-color-secondary: #a0a0a0; /* For subtext and less important info */
+            --border-color: #333333;
+            --border-radius: 8px;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            cursor: none;
+        }
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            background-color: rgba(20, 20, 20, 0.7);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .logo {
+            font-weight: 700;
+            font-size: 26px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .login-btn {
+            background-color: transparent;
+            color: var(--text-color);
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.3s, color 0.3s;
+            border: 1px solid var(--border-color);
+        }
+        .login-btn:hover {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            border-color: var(--primary-color);
+        }
+        .hero {
+            text-align: center;
+            padding: 100px 0;
+            animation: fadeIn 1s ease-in-out;
+            position: relative;
+        }
+        .hero .container {
+            position: relative;
+        }
+        .hero h1 {
+            font-size: 52px;
+            font-weight: 700;
+            max-width: 750px;
+            margin: 0 auto 20px;
+        }
+        .hero h1 .interactive-word {
+            display: inline-block;
+            transition: transform 0.1s ease-out;
+            padding: 0 3px;
+        }
+        .hero h1 .interactive-word:hover {
+            transform: translateY(-6px);
+            color: var(--primary-color);
+        }
+        .hero .subtext {
+            font-size: 18px;
+            max-width: 650px;
+            margin: 0 auto 40px;
+            color: var(--text-color-secondary);
+        }
+        .hero .cta-button {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            padding: 16px 40px;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 18px;
+            display: inline-block;
+            transition: transform 0.3s, background-color 0.3s, box-shadow 0.3s;
+            border: none;
+        }
+        .hero .cta-button:hover {
+            background-color: #c00711;
+            transform: translateY(-3px);
+            box-shadow: 0 0 20px rgba(229, 9, 20, 0.5);
+        }
+        .hero-image {
+            margin-top: 60px;
+            width: 100%;
+            max-width: 550px;
+            margin: 60px auto 0;
+            border-radius: var(--border-radius);
+            text-align: center;
+            transition: transform 0.1s, border-color 0.3s;
+            border: 1px solid var(--border-color);
+        }
+
+        .analysis-box {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            text-align: left;
+            box-shadow: var(--shadow);
+        }
+
+        .analysis-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .analysis-header h5 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .analysis-header span {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-color-secondary);
+            background-color: #333;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .risk-alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            background-color: rgba(229, 9, 20, 0.1);
+            border: 1px solid var(--primary-color);
+            padding: 15px;
+            border-radius: var(--border-radius);
+        }
+
+        .risk-icon {
+            font-size: 24px;
+            margin-top: -3px;
+        }
+
+        .risk-details h6 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+        }
+
+        .risk-details p {
+            font-size: 14px;
+            color: var(--text-color-secondary);
+        }
+
+        section {
+            padding: 80px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        section:last-of-type {
+            border-bottom: none;
+        }
+        .section-title {
+            text-align: center;
+            font-size: 40px;
+            font-weight: 700;
+            margin-bottom: 50px;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        .feature-card {
+            background-color: var(--surface-color);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            transition: transform 0.3s, border-color 0.3s;
+            border: 1px solid var(--border-color);
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-color);
+        }
+        .feature-card .icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .feature-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .feature-card p {
+            color: var(--text-color-secondary);
+        }
+        .how-it-works .steps {
+            display: flex;
+            justify-content: space-around;
+            gap: 40px;
+            text-align: center;
+        }
+        .step {
+            max-width: 300px;
+        }
+        .step .icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+        .step h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .step p {
+            color: var(--text-color-secondary);
+        }
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        .testimonial-card {
+            background: var(--surface-color);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+        }
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+            font-style: normal;
+        }
+        .author-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: 600;
+        }
+        footer {
+            background-color: var(--bg-color);
+            color: var(--text-color-secondary);
+            text-align: center;
+            padding: 50px 0;
+            margin-top: 40px;
+        }
+        footer .footer-links {
+            margin-bottom: 20px;
+        }
+        footer .footer-links a {
+            color: var(--text-color-secondary);
+            text-decoration: none;
+            margin: 0 15px;
+            transition: color 0.3s;
+        }
+        footer .footer-links a:hover {
+            color: var(--primary-color);
+        }
+        footer .copyright {
+            font-size: 14px;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            z-index: 1000;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal {
+            background: var(--surface-color);
+            padding: 40px;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 400px;
+            transform: translateY(-20px);
+            transition: transform 0.3s;
+            border: 1px solid var(--border-color);
+        }
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #loginFormBtn {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+        }
+        #loginFormBtn:hover {
+            background-color: #c00711;
+        }
+        #registerFormBtn {
+            background-color: var(--border-color);
+            color: var(--text-color);
+        }
+        #registerFormBtn:hover {
+            background-color: #444;
+        }
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 40px; }
+            .hero .subtext { font-size: 16px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .how-it-works .steps { flex-direction: column; align-items: center; gap: 30px; }
+            .testimonial-grid { grid-template-columns: 1fr; }
+            header { padding: 15px 0; }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-in-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .dashboard-message {
+            display: none;
+            background-color: var(--surface-color);
+            border: 1px solid var(--primary-color);
+            color: var(--text-color);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+        .cursor-follower {
+            position: fixed;
+            width: 30px;
+            height: 30px;
+            border: 1px solid var(--text-color-secondary);
+            border-radius: 50%;
+            pointer-events: none;
+            left: 0;
+            top: 0;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s, background-color 0.3s;
+            z-index: 9999;
+        }
+        .cursor-follower.grow {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(229, 9, 20, 0.3);
+        }
+    </style>
+</head>
+<body class="dark-theme">
+    <canvas id="particle-canvas"></canvas>
+    <header class="container">
+        <div class="logo">🔎 ClauseWatch</div>
+        <div id="auth-section">
+            <a href="#" class="login-btn magnetic-link" id="login-register-btn">Login / Register</a>
+        </div>
+        <div id="dashboard-message" class="dashboard-message"></div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1 class="animate-title">Stop agreeing to what you don't understand.</h1>
+                <p class="subtext">ClauseWatch scans Terms of Service and Privacy Policies to detect hidden risks, data traps, and unfair clauses — before you click 'I Agree'.</p>
+                <a href="#" class="cta-button magnetic-link">Download Extension</a>
+                <div class="hero-image">
+                    <div class="analysis-box">
+                        <div class="analysis-header">
+                            <h5>ClauseWatch Analysis</h5>
+                            <span>Scan Complete</span>
+                        </div>
+                        <div class="risk-alert">
+                            <div class="risk-icon">⚠️</div>
+                            <div class="risk-details">
+                                <h6>Found 1 Potentially Risky Clause</h6>
+                                <p><strong>Data Sharing:</strong> Your data may be shared with third-party partners for marketing purposes.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="container fade-in-section">
+            <h2 class="section-title">Key Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="icon">📜</div>
+                    <h3>Clause Detection</h3>
+                    <p>Detects risky or unusual clauses in legal documents.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📘</div>
+                    <h3>Plain English Summaries</h3>
+                    <p>Converts legalese into readable, simple explanations.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h3>Risk-Score Dashboard</h3>
+                    <p>Shows a risk score and breakdown for every site.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔔</div>
+                    <h3>Smart Alerts</h3>
+                    <p>Notifies you when terms change or when a risk is found.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="how-it-works" class="how-it-works container fade-in-section">
+            <h2 class="section-title">How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="icon">🌐</div>
+                    <h3>1. Visit a Site</h3>
+                    <p>ClauseWatch automatically activates on pages with a TOS.</p>
+                </div>
+                <div class="step">
+                    <div class="icon">🔍</div>
+                    <h3>2. Instant Scan</h3>
+                    <p>Our AI reads the fine print in seconds, analyzing every sentence.</p>
+                </div>
+                <div class="step">
+                    <div class="icon">💡</div>
+                    <h3>3. Get Alerts</h3>
+                    <p>Receive a simple risk score and a summary of what you need to know.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="testimonials" class="testimonials fade-in-section">
+            <div class="container">
+                <h2 class="section-title">What Users Are Saying</h2>
+                <div class="testimonial-grid">
+                    <div class="testimonial-card">
+                        <p>"I didn't know Instagram had a clause like that — this saved me! ClauseWatch is a must-have for anyone who values their privacy."</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">SJ</div>
+                            <span>- Sarah J.</span>
+                        </div>
+                    </div>
+                    <div class="testimonial-card">
+                        <p>"ClauseWatch made legal docs readable again. The plain English summaries are a game-changer. 🔥"</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">DL</div>
+                            <span>- David L.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="#">About</a> •
+                <a href="#">Contact</a> •
+                <a href="#">GitHub</a> •
+                <a href="#">Privacy</a>
+            </div>
+            <p class="copyright">&copy; 2025 ClauseWatch. All Rights Reserved.</p>
+        </div>
+    </footer>
+    
+    <div class="cursor-follower" id="cursor-follower"></div>
+
+    <div class="modal-overlay" id="login-modal">
+        <div class="modal">
+            <h2 id="modal-title">Login</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" id="loginFormBtn">Login</button>
+                    <button type="button" id="registerFormBtn">Register</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const loginRegisterBtn = document.getElementById('login-register-btn');
+        const loginModal = document.getElementById('login-modal');
+        const loginForm = document.getElementById('login-form');
+        const authSection = document.getElementById('auth-section');
+        const dashboardMessage = document.getElementById('dashboard-message');
+
+        loginRegisterBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginModal.classList.add('active');
+        });
+
+        loginModal.addEventListener('click', (e) => {
+            if (e.target === loginModal) {
+                loginModal.classList.remove('active');
+            }
+        });
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            // Simulate login
+            loginModal.classList.remove('active');
+            window.location.href = 'dashboard.html';
+        });
+        
+        // Fade in sections on scroll
+        const sections = document.querySelectorAll('.fade-in-section');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        sections.forEach(section => {
+            observer.observe(section);
+        });
+
+        // 3D Tilt effect for feature cards
+        const tiltableCards = document.querySelectorAll('.feature-card, .testimonial-card');
+        tiltableCards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -15;
+                const rotateY = ((x - centerX) / centerX) * 15;
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
+            });
+        });
+
+        // Interactive title words
+        const title = document.querySelector('.animate-title');
+        const words = title.textContent.trim().split(' ');
+        title.innerHTML = '';
+        words.forEach(word => {
+            title.innerHTML += `<span class="interactive-word">${word}</span> `;
+        });
+
+        // Advanced Interactivity
+        const cursorFollower = document.getElementById('cursor-follower');
+        const magneticLinks = document.querySelectorAll('.magnetic-link');
+        
+        // Cursor follower logic
+        window.addEventListener('mousemove', e => {
+            cursorFollower.style.left = e.clientX + 'px';
+            cursorFollower.style.top = e.clientY + 'px';
+        });
+
+        document.querySelectorAll('a, button, .feature-card').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorFollower.classList.add('grow'));
+            el.addEventListener('mouseleave', () => cursorFollower.classList.remove('grow'));
+        });
+
+        // Magnetic links logic
+        magneticLinks.forEach(link => {
+            link.addEventListener('mousemove', function(e) {
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                this.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
+            });
+            link.addEventListener('mouseleave', function() {
+                this.style.transform = 'translate(0, 0)';
+            });
+        });
+
+        // Particle Canvas Animation
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particlesArray;
+
+        const mouse = {
+            x: null,
+            y: null,
+            radius: 150
+        }
+        const originalMouseRadius = mouse.radius;
+
+        window.addEventListener('mousedown', () => {
+            mouse.radius = 250;
+        });
+        window.addEventListener('mouseup', () => {
+            mouse.radius = originalMouseRadius;
+        });
+        
+        window.addEventListener('mousemove', function(event) {
+            mouse.x = event.x;
+            mouse.y = event.y;
+        });
+
+        class Particle {
+            constructor(x, y, directionX, directionY, size, color) {
+                this.x = x;
+                this.y = y;
+                this.directionX = directionX;
+                this.directionY = directionY;
+                this.size = size;
+                this.color = color;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = 'rgba(229, 9, 20, 0.5)';
+                ctx.fill();
+            }
+            update() {
+                if (this.x > canvas.width || this.x < 0) {
+                    this.directionX = -this.directionX;
+                }
+                if (this.y > canvas.height || this.y < 0) {
+                    this.directionY = -this.directionY;
+                }
+
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const force = (mouse.radius - distance) / mouse.radius;
+                    this.x -= dx * force * 0.05;
+                    this.y -= dy * force * 0.05;
+                }
+                
+                this.x += this.directionX;
+                this.y += this.directionY;
+                this.draw();
+            }
+        }
+
+        function init() {
+            particlesArray = [];
+            let numberOfParticles = (window.innerHeight * window.innerWidth) / 9000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 2) + 1;
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                let directionX = (Math.random() * 0.6) - 0.3;
+                let directionY = (Math.random() * 0.6) - 0.3;
+                let color = 'rgba(229, 9, 20, 0.5)';
+                particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
+            }
+        }
+
+        function connect() {
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) +
+                        ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    if (distance < (canvas.width / 7) * (canvas.height / 7)) {
+                        opacityValue = 1 - (distance / 20000);
+                        ctx.strokeStyle = `rgba(170, 170, 170, ${opacityValue})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+                if (mouse.x) {
+                    let distanceToMouse = Math.sqrt(Math.pow(mouse.x - particlesArray[a].x, 2) + Math.pow(mouse.y - particlesArray[a].y, 2));
+                    if (distanceToMouse < mouse.radius) {
+                        opacityValue = 1 - (distanceToMouse / mouse.radius);
+                        ctx.strokeStyle = `rgba(229, 9, 20, ${opacityValue * 0.7})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(mouse.x, mouse.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.clearRect(0, 0, innerWidth, innerHeight);
+
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+            connect();
+        }
+
+        window.addEventListener('resize', () => {
+            canvas.width = innerWidth;
+            canvas.height = innerHeight;
+            mouse.radius = originalMouseRadius;
+            init();
+        });
+
+        window.addEventListener('mouseout', () => {
+            mouse.x = undefined;
+            mouse.y = undefined;
+        });
+
+        init();
+        animate();
+    });
+    </script>
+</body>
+</html> 

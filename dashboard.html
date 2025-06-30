@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClauseWatch - Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #e50914;
+            --bg-color: #141414;
+            --surface-color: #222222;
+            --text-color: #ffffff;
+            --text-color-secondary: #a0a0a0;
+            --border-color: #333333;
+            --border-radius: 8px;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            overflow-x: hidden;
+        }
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+        }
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .main-header {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-color);
+            background-color: rgba(20, 20, 20, 0.5);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .top-nav .logo {
+            font-weight: 700;
+            font-size: 26px;
+            color: var(--primary-color);
+        }
+        .top-nav-links a {
+            display: inline-block;
+            color: var(--text-color-secondary);
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            margin: 0 5px;
+            transition: color 0.3s;
+        }
+        .top-nav-links a.active,
+        .top-nav-links a:hover {
+            color: var(--text-color);
+        }
+        .main-content {
+            padding: 40px 0;
+        }
+        .dashboard-header {
+            margin-bottom: 30px;
+            text-align: center;
+            padding: 20px 0;
+        }
+        .dashboard-header h1 {
+            font-size: 42px;
+            margin-bottom: 5px;
+        }
+        .dashboard-header p {
+            font-size: 18px;
+            color: var(--text-color-secondary);
+        }
+        .card {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+        .card h3 {
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        th {
+            color: var(--text-color-secondary);
+        }
+        .risk-high { color: #e50914; }
+        .risk-medium { color: #f5c518; }
+        .risk-low { color: #28c840; }
+
+        /* Analytics */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .stat-card {
+            background-color: #333;
+            padding: 20px;
+            border-radius: var(--border-radius);
+        }
+        .stat-card h4 {
+            color: var(--text-color-secondary);
+            font-size: 16px;
+        }
+        .stat-card .value {
+            font-size: 36px;
+            font-weight: 700;
+        }
+        
+        /* Subscription */
+        .subscription-plan {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .primary-btn {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        .primary-btn:hover { background-color: #c00711; }
+        
+        /* Settings */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-color-secondary);
+        }
+        .form-group input {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-canvas"></canvas>
+    
+    <header class="main-header">
+        <div class="container top-nav">
+            <div class="logo">🔎 ClauseWatch</div>
+            <nav class="top-nav-links">
+                <a href="#" class="active">Dashboard</a>
+                <a href="#">History</a>
+                <a href="#">User Analytics</a>
+                <a href="#">Subscription</a>
+                <a href="#">Settings</a>
+            </nav>
+            <a href="index.html" class="primary-btn">Logout</a>
+        </div>
+    </header>
+
+    <main class="main-content container">
+        <header class="dashboard-header">
+            <h1>Welcome Back!</h1>
+            <p>Here's a summary of your activity and protection status.</p>
+        </header>
+
+        <div class="card" id="history">
+            <h3>Scan History</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Website</th>
+                        <th>Date Scanned</th>
+                        <th>Risky Clauses</th>
+                        <th>Risk Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>instagram.com</td>
+                        <td>2024-07-28</td>
+                        <td>3</td>
+                        <td class="risk-high">High</td>
+                    </tr>
+                    <tr>
+                        <td>google.com</td>
+                        <td>2024-07-27</td>
+                        <td>1</td>
+                        <td class="risk-medium">Medium</td>
+                    </tr>
+                    <tr>
+                        <td>github.com</td>
+                        <td>2024-07-25</td>
+                        <td>0</td>
+                        <td class="risk-low">Low</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card" id="analytics">
+            <h3>User Analytics</h3>
+            <div class="analytics-grid">
+                <div class="stat-card">
+                    <h4>Clauses Detected</h4>
+                    <div class="value">14</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Sites Protected</h4>
+                    <div class="value">5</div>
+                </div>
+                <div class="stat-card">
+                    <h4>High-Risk Alerts</h4>
+                    <div class="value">2</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" id="subscription">
+            <h3>Current Subscription</h3>
+            <div class="subscription-plan">
+                <div>
+                    <h4>Your Plan: <span style="color: var(--primary-color);">Free Tier</span></h4>
+                    <p>Includes up to 10 site scans per month.</p>
+                </div>
+                <a href="#" class="primary-btn">Upgrade to Pro</a>
+            </div>
+        </div>
+
+        <div class="card" id="settings">
+            <h3>Settings</h3>
+            <form>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" value="user@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="password">New Password</label>
+                    <input type="password" id="password" placeholder="••••••••">
+                </div>
+                 <a href="#" class="primary-btn">Save Changes</a>
+            </form>
+        </div>
+    </main>
+    
+    <script>
+        // Particle animation script from index.html would go here
+        // For brevity, it's omitted but should be copied over.
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particlesArray;
+
+        const mouse = {
+            x: null,
+            y: null,
+            radius: 150
+        }
+        const originalMouseRadius = mouse.radius;
+
+        window.addEventListener('mousedown', () => { mouse.radius = 250; });
+        window.addEventListener('mouseup', () => { mouse.radius = originalMouseRadius; });
+        window.addEventListener('mousemove', function(event) {
+            mouse.x = event.x;
+            mouse.y = event.y;
+        });
+
+        class Particle {
+            constructor(x, y, directionX, directionY, size, color) {
+                this.x = x; this.y = y; this.directionX = directionX; this.directionY = directionY; this.size = size; this.color = color;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = 'rgba(229, 9, 20, 0.5)';
+                ctx.fill();
+            }
+            update() {
+                if (this.x > canvas.width || this.x < 0) { this.directionX = -this.directionX; }
+                if (this.y > canvas.height || this.y < 0) { this.directionY = -this.directionY; }
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const force = (mouse.radius - distance) / mouse.radius;
+                    this.x -= dx * force * 0.05;
+                    this.y -= dy * force * 0.05;
+                }
+                this.x += this.directionX;
+                this.y += this.directionY;
+                this.draw();
+            }
+        }
+        function init() {
+            particlesArray = [];
+            let numberOfParticles = (window.innerHeight * window.innerWidth) / 9000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 2) + 1;
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                let directionX = (Math.random() * 0.6) - 0.3;
+                let directionY = (Math.random() * 0.6) - 0.3;
+                particlesArray.push(new Particle(x, y, directionX, directionY, size, 'rgba(229, 9, 20, 0.5)'));
+            }
+        }
+        function connect() {
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) +
+                        ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    if (distance < (canvas.width / 7) * (canvas.height / 7)) {
+                        opacityValue = 1 - (distance / 20000);
+                        ctx.strokeStyle = `rgba(170, 170, 170, ${opacityValue})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+                if (mouse.x) {
+                    let distanceToMouse = Math.sqrt(Math.pow(mouse.x - particlesArray[a].x, 2) + Math.pow(mouse.y - particlesArray[a].y, 2));
+                    if (distanceToMouse < mouse.radius) {
+                        opacityValue = 1 - (distanceToMouse / mouse.radius);
+                        ctx.strokeStyle = `rgba(229, 9, 20, ${opacityValue * 0.7})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(mouse.x, mouse.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.clearRect(0, 0, innerWidth, innerHeight);
+            for (let i = 0; i < particlesArray.length; i++) { particlesArray[i].update(); }
+            connect();
+        }
+        window.addEventListener('resize', () => {
+            canvas.width = innerWidth;
+            canvas.height = innerHeight;
+            mouse.radius = originalMouseRadius;
+            init();
+        });
+        window.addEventListener('mouseout', () => { mouse.x = undefined; mouse.y = undefined; });
+        init();
+        animate();
+    </script>
+</body>
+</html> 
